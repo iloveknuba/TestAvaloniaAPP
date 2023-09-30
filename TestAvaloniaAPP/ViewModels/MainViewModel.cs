@@ -13,16 +13,7 @@ namespace TestAvaloniaAPP.ViewModels;
 
 public class MainViewModel : ViewModelBase, INotifyPropertyChanged
 {
-    public string Greeting => "Welcome to Avalonia!";
-
-    private PlaylistRepo _playlistRepo;
-
-    private string _playlisttitle;
-    public string PlaylistTitle
-    {
-        get { return _playlisttitle; }
-        set { _playlisttitle = value; }
-    }
+   
 
     private Playlist _playlist;
     public Playlist Playlist
@@ -72,16 +63,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         Playlist = playlist.GetWebPlaylist(path.ToString());
         
     }
-    public MainViewModel()
-    {
-        
-        // Playlist = playlist.GetPlaylist("https://music.amazon.com/playlists/B01M11SBC8") ;
-
-
-
-
-    }
-
+    
     public event PropertyChangedEventHandler PropertyChanged;
 
     protected virtual void OnPropertyChanged(string propertyName)
