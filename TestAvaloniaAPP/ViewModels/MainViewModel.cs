@@ -64,9 +64,13 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         
         get
         {
-            OnPropertyChanged(nameof(AvatarUrl));
-            return
-                ImageHelper.LoadFromWeb(new Uri(AvatarUrl));
+            try
+            {
+                OnPropertyChanged(nameof(AvatarUrl));
+                return
+                    ImageHelper.LoadFromWeb(new Uri(AvatarUrl));
+            }
+            catch { return null; }
         }
         
     } 

@@ -45,7 +45,7 @@ namespace TestAvaloniaAPP.Data.Repositories
         public Playlist GetWebPlaylist(string url)
         {
             IWebDriver driver = new ChromeDriver("D:\\3 курс\\chromedriver-win64\\chromedriver.exe");
-
+           
             try
             {
                 driver.Navigate().GoToUrl(url);
@@ -64,13 +64,19 @@ namespace TestAvaloniaAPP.Data.Repositories
                 doc.LoadHtml(pageSource);
 
                 // Приклад парсингу заголовку сторінки
-                var pageTitle = doc.DocumentNode.SelectSingleNode("//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[12]/div[2]/div[1]/yt-formatted-string/a");
-                return new Playlist
+              
+
+                Playlist playlist = new Playlist
                 {
-                    Name = doc.DocumentNode.SelectSingleNode("//*[@id=\"header\"]/ytmusic-detail-header-renderer/div/div[2]/h2/yt-formatted-string").InnerHtml,
-                    Avatar = doc.DocumentNode.SelectSingleNode("//*[@id=\"img\"]").GetAttributeValue("src", ""),
-                    Description = doc.DocumentNode.SelectSingleNode("//*[@id=\"header\"]/ytmusic-detail-header-renderer/div/div[2]/yt-formatted-string[1]/span[1]").InnerHtml,
-                   Songs = GetSongList(doc, pageSource)
+                    Name = doc.DocumentNode.SelectSingleNode("//*[@id=\"header\"]/ytmusic-detail-header-renderer/div/div[2]/h2/yt-formatted-string")?.InnerHtml ?? "Wrong Url",
+                    Avatar = doc.DocumentNode.SelectSingleNode("//*[@id=\"img\"]")?.GetAttributeValue("src", "") ?? "",
+                    Description = doc.DocumentNode.SelectSingleNode("//*[@id=\"header\"]/ytmusic-detail-header-renderer/div/div[2]/yt-formatted-string[1]/span[1]")?.InnerHtml?? "",
+                    Songs = GetSongList(doc, pageSource)
+                };
+
+                return playlist !=null ? playlist : new Playlist
+                {
+                    Name = "Wrong url"
                 };
             }
             catch (Exception ex)
