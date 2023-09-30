@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:TestAvaloniaAPP.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="TestAvaloniaAPP.Views.MainView"
+			 xmlns:media="clr-namespace:System.Windows.Media.Imaging;assembly=PresentationCore"
+             x:DataType="vm:MainViewModel">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <vm:MainViewModel />
+  </Design.DataContext>
+	<Grid>
+		<ScrollViewer >
+
+		<!-- ListBox для відображення плейлистів -->
+		<StackPanel>
+			<TextBox Margin="0 5" x:Name="message"
+           Watermark="Add a message to enable the button"/>
+			<Button Command="{Binding CheckPath}"
+					CommandParameter="{Binding #message.Text}">
+				Run the example
+			</Button>
+			<TextBlock Text="{Binding Playlist.Name}" FontWeight="Bold" FontSize="20" />
+
+			<!-- Опис плейлисту -->
+			<TextBlock Text="{Binding Playlist.Description}" TextWrapping="Wrap" Margin="0,5,0,10" />
+
+		
+
+	
+				<!-- Ваш вміст, який може бути більшим за розмір контейнера -->
+		
+			<!-- Список пісень -->
+			<ListBox ItemsSource="{Binding Playlist.Songs}" Margin="0,10,0,0">
+				<ListBox.ItemTemplate>
+					<DataTemplate>
+						<StackPanel Orientation="Vertical" Margin="0,5">
+							<!-- Назва пісні -->
+							<TextBlock Text="{Binding SongName}" FontWeight="Bold" FontSize="16" />
+
+							<!-- Виконавець -->
+							<TextBlock Text="{Binding ArtistName}" FontSize="14" />
+
+							<!-- Альбом -->
+							<TextBlock Text="{Binding AlbumName}" FontSize="14" />
+
+							<!-- Тривалість пісні -->
+							<TextBlock Text="{Binding Duration}" FontSize="14" />
+						</StackPanel>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+			</ListBox>
+			
+		</StackPanel>
+		</ScrollViewer>
+	</Grid>
+
+	
+</UserControl>
