@@ -44,24 +44,44 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
     }
 
 
-   
+    private string _avatarUrl;
+    public string AvatarUrl
+    {
+        get { return _displayText; }
+        set
+        {
+            if (_displayText != value)
+            {
+                _displayText = value;
+                OnPropertyChanged(nameof(DisplayText));
+            }
+        }
+    }
+
+
     public Task<Bitmap?> ImageFromWebsite
     {
         
         get
         {
+            OnPropertyChanged(nameof(AvatarUrl));
             return
-                ImageHelper.LoadFromWeb(new Uri(Playlist.Avatar));
+                ImageHelper.LoadFromWeb(new Uri(AvatarUrl));
         }
+        
     } 
 
-  
+  public MainViewModel()
+    {
+        AvatarUrl = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    }
 
     public async void CheckPath(object path)
     {
         PlaylistRepo playlist = new PlaylistRepo();
         Playlist = playlist.GetWebPlaylist(path.ToString());
-        
+        AvatarUrl = Playlist.Avatar;
+        OnPropertyChanged(nameof(ImageFromWebsite));
     }
     
     public event PropertyChangedEventHandler PropertyChanged;

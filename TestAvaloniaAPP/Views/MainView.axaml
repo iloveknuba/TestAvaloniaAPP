@@ -6,6 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TestAvaloniaAPP.Views.MainView"
 			 xmlns:media="clr-namespace:System.Windows.Media.Imaging;assembly=PresentationCore"
+			 Background="LightBlue"
              x:DataType="vm:MainViewModel">
   <Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
@@ -18,18 +19,18 @@
 		<!-- ListBox для відображення плейлистів -->
 		<StackPanel>
 			<TextBox Margin="0 5" x:Name="message"
-           Watermark="Add a message to enable the button"/>
+           Watermark="Введіть url плейлисту" HorizontalAlignment="Center"/>
 			<Button Command="{Binding CheckPath}"
-					CommandParameter="{Binding #message.Text}">
-				Run the example
+					CommandParameter="{Binding #message.Text}" HorizontalAlignment="Center">
+				Пошук
 			</Button>
-			<TextBlock Text="{Binding Playlist.Name}" FontWeight="Bold" FontSize="20" />
+			<TextBlock Text="{Binding Playlist.Name}" HorizontalAlignment="Center" FontWeight="Bold" FontSize="20" />
 
 			<!-- Опис плейлисту -->
-			<TextBlock Text="{Binding Playlist.Description}" TextWrapping="Wrap" Margin="0,5,0,10" />
+			<TextBlock Text="{Binding Playlist.Description}" HorizontalAlignment="Center" TextWrapping="Wrap" Margin="0,5,0,10" />
 
 		
-
+			<Image Source="{Binding ImageFromWebsite^}" MaxWidth="200"/>
 	
 				<!-- Ваш вміст, який може бути більшим за розмір контейнера -->
 		
