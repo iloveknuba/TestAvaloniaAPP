@@ -34,7 +34,7 @@ namespace TestAvaloniaAPP.Data.Repositories
                 {
                     ArtistName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[{i}]/div[2]/div[3]/yt-formatted-string[1]/a").InnerHtml,
                     AlbumName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[{i}]/div[2]/div[3]/yt-formatted-string[2]/a").InnerHtml,
-                    Duration = 123,
+                    Duration = doc.DocumentNode.SelectSingleNode($"//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[{i}]/div[3]/yt-formatted-string").InnerHtml,
                     SongName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[{i}]/div[2]/div[1]/yt-formatted-string/a").InnerHtml
                 });
             }

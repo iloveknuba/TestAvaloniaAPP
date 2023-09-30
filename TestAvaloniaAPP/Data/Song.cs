@@ -11,7 +11,7 @@ namespace TestAvaloniaAPP.Data
         public string SongName { get; set; }
         public string ArtistName {  get; set; }
         public string AlbumName { get; set; }
-        public int Duration { get; set; }
+        public string Duration { get; set; }
 
     }
 }
