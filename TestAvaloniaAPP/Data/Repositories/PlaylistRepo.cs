@@ -72,7 +72,7 @@ namespace TestAvaloniaAPP.Data.Repositories
 
                 Playlist playlist = new Playlist
                 {
-                    Name = playlistXPath?.GetAttributeValue("headline","") ?? "Wrong Url",
+                    Name = playlistXPath?.GetAttributeValue("headline","") ?? "",
                     Avatar = playlistXPath?.GetAttributeValue("image-src", "") ?? "",
                     Description = playlistXPath?.GetAttributeValue("secondary-text","")?? "",
                     Songs = songsXPath.Select(p=> new Song
@@ -91,10 +91,18 @@ namespace TestAvaloniaAPP.Data.Repositories
                     Name = "Wrong url"
                 };
             }
+            catch (NoSuchWindowException ex)
+            {
+               return new Playlist { Name = ex.Message };
+                driver.Quit();
+
+            }
             catch (Exception ex)
             {
                 return new Playlist { Name = ex.Message};
+                driver.Quit();
             }
+           
             finally
             {
                 driver.Quit(); // Закрити драйвер після виконання всіх операцій
