@@ -21,21 +21,17 @@ namespace TestAvaloniaAPP.Data.Repositories
 
         List<Song> GetSongList(HtmlDocument doc, string html)
         {
-          
-           
             var list = new List<Song>();
-            
-
+    
             for (int i = 1; i < 20; i++)
             {
-                if(doc.DocumentNode.SelectSingleNode($"//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[{i}]/div[2]/div[3]/yt-formatted-string[1]/a")!= null &&
-                   (doc.DocumentNode.SelectSingleNode($"//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[{i}]/div[2]/div[3]/yt-formatted-string[2]/a") != null))
+                if(doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[1]/div/div[3]/music-link/span").InnerHtml != null)
                 list.Add(new Song
                 {
-                    ArtistName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[{i}]/div[2]/div[3]/yt-formatted-string[1]/a").InnerHtml,
-                    AlbumName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[{i}]/div[2]/div[3]/yt-formatted-string[2]/a").InnerHtml,
-                    Duration = doc.DocumentNode.SelectSingleNode($"//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[{i}]/div[3]/yt-formatted-string").InnerHtml,
-                    SongName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"contents\"]/ytmusic-responsive-list-item-renderer[{i}]/div[2]/div[1]/yt-formatted-string/a").InnerHtml
+                    ArtistName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{i}]/div/div[2]/div/music-link[1]/a").InnerHtml,
+                    AlbumName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{i}]/div/div[2]/div/music-link[2]/a").InnerHtml,
+                    Duration = doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{i}]/div/div[3]/music-link/span").InnerHtml,
+                    SongName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{i}]/div/div[1]/music-link/a").InnerHtml
                 });
             }
             
@@ -53,8 +49,12 @@ namespace TestAvaloniaAPP.Data.Repositories
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                 wait.Until(driver => ((IJavaScriptExecutor)driver).ExecuteScript("return document.readyState").Equals("complete"));
 
+                wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[1]/div/div[1]/music-link/a")));
+
                 IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
                 var jsResult = jsExecutor.ExecuteScript("return document.documentElement.outerHTML");
+
+           
 
                 // Отримуємо HTML-код сторінки з Selenium
                 string pageSource = jsResult.ToString();
@@ -63,15 +63,27 @@ namespace TestAvaloniaAPP.Data.Repositories
                 HtmlDocument doc = new HtmlDocument();
                 doc.LoadHtml(pageSource);
 
+                var playlistXPath = doc.DocumentNode.SelectSingleNode("//*[@id=\"atf\"]/music-detail-header");
+                var songsXPath = doc.DocumentNode.SelectNodes("//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row");
+
+
                 // Приклад парсингу заголовку сторінки
-              
+
 
                 Playlist playlist = new Playlist
                 {
-                    Name = doc.DocumentNode.SelectSingleNode("//*[@id=\"header\"]/ytmusic-detail-header-renderer/div/div[2]/h2/yt-formatted-string")?.InnerHtml ?? "Wrong Url",
-                    Avatar = doc.DocumentNode.SelectSingleNode("//*[@id=\"img\"]")?.GetAttributeValue("src", "") ?? "",
-                    Description = doc.DocumentNode.SelectSingleNode("//*[@id=\"header\"]/ytmusic-detail-header-renderer/div/div[2]/yt-formatted-string[1]/span[1]")?.InnerHtml?? "",
-                    Songs = GetSongList(doc, pageSource)
+                    Name = playlistXPath?.GetAttributeValue("headline","") ?? "Wrong Url",
+                    Avatar = playlistXPath?.GetAttributeValue("image-src", "") ?? "",
+                    Description = playlistXPath?.GetAttributeValue("secondary-text","")?? "",
+                    Songs = songsXPath.Select(p=> new Song
+                    {
+                        ArtistName = p.GetAttributeValue("secondary-text-1",""),
+                        SongName = p.GetAttributeValue("primary-text",""),
+                        Duration = "3:33",
+                        AlbumName = p.GetAttributeValue("secondary-text-2","")
+                    })
+                   
+                   //Songs = GetSongList(doc,pageSource)
                 };
 
                 return playlist !=null ? playlist : new Playlist
