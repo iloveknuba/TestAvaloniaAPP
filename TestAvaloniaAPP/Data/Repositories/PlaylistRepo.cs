@@ -40,7 +40,10 @@ namespace TestAvaloniaAPP.Data.Repositories
      
         public Playlist GetWebPlaylist(string url)
         {
-            IWebDriver driver = new ChromeDriver("D:\\3 курс\\chromedriver-win64\\chromedriver.exe");
+            string projectFolder = AppDomain.CurrentDomain.BaseDirectory;
+            string driverPath = Path.Combine(projectFolder, "Chromedriver");
+            IWebDriver driver = new ChromeDriver(driverPath);
+
            
             try
             {
