@@ -13,16 +13,7 @@ namespace TestAvaloniaAPP.ViewModels;
 
 public class MainViewModel : ViewModelBase, INotifyPropertyChanged
 {
-    public string Greeting => "Welcome to Avalonia!";
-
-    private PlaylistRepo _playlistRepo;
-
-    private string _playlisttitle;
-    public string PlaylistTitle
-    {
-        get { return _playlisttitle; }
-        set { _playlisttitle = value; }
-    }
+   
 
     private Playlist _playlist;
     public Playlist Playlist
@@ -53,35 +44,50 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
     }
 
 
-   
+    private string _avatarUrl;
+    public string AvatarUrl
+    {
+        get { return _displayText; }
+        set
+        {
+            if (_displayText != value)
+            {
+                _displayText = value;
+                OnPropertyChanged(nameof(DisplayText));
+            }
+        }
+    }
+
+
     public Task<Bitmap?> ImageFromWebsite
     {
         
         get
         {
-            return
-                ImageHelper.LoadFromWeb(new Uri(Playlist.Avatar));
+            try
+            {
+                OnPropertyChanged(nameof(AvatarUrl));
+                return
+                    ImageHelper.LoadFromWeb(new Uri(AvatarUrl));
+            }
+            catch { return null; }
         }
+        
     } 
 
-  
+  public MainViewModel()
+    {
+        AvatarUrl = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    }
 
     public async void CheckPath(object path)
     {
         PlaylistRepo playlist = new PlaylistRepo();
         Playlist = playlist.GetWebPlaylist(path.ToString());
-        
+        AvatarUrl = Playlist.Avatar;
+        OnPropertyChanged(nameof(ImageFromWebsite));
     }
-    public MainViewModel()
-    {
-        
-        // Playlist = playlist.GetPlaylist("https://music.amazon.com/playlists/B01M11SBC8") ;
-
-
-
-
-    }
-
+    
     public event PropertyChangedEventHandler PropertyChanged;
 
     protected virtual void OnPropertyChanged(string propertyName)

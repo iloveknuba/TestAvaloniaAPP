@@ -8,7 +8,7 @@ namespace TestAvaloniaAPP.Data.Interfaces
 {
     public interface IPlaylist
     {
-        Playlist GetPlaylist(string url);
+        Playlist GetWebPlaylist(string url);
        
     }
 }
