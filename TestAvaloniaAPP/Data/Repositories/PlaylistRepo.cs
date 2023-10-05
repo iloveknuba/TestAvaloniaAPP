@@ -12,6 +12,10 @@ using System.Threading.Tasks;
 using TestAvaloniaAPP.Data.Interfaces;
 using System.IO;
 using System.Drawing;
+using OpenQA.Selenium.Interactions;
+using System.Threading;
+using System.Xml.Linq;
+using DynamicData;
 
 namespace TestAvaloniaAPP.Data.Repositories
 {
@@ -21,29 +25,37 @@ namespace TestAvaloniaAPP.Data.Repositories
 
         List<Song> GetSongList(HtmlDocument doc, string html)
         {
-            var list = new List<Song>();
-    
-            for (int i = 1; i < 20; i++)
+            var allsongs = new List<Song>();   
+          foreach( var song in doc.DocumentNode.SelectNodes("//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row"))
             {
-                if(doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[1]/div/div[3]/music-link/span").InnerHtml != null)
-                list.Add(new Song
-                {
-                    ArtistName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{i}]/div/div[2]/div/music-link[1]/a").InnerHtml,
-                    AlbumName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{i}]/div/div[2]/div/music-link[2]/a").InnerHtml,
-                    Duration = doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{i}]/div/div[3]/music-link/span").InnerHtml,
-                    SongName = doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{i}]/div/div[1]/music-link/a").InnerHtml
-                });
+
             }
-            
-            return list;
+          return allsongs;
         }
-     
+
+         IWebElement GetElementAndScrollTo(IWebDriver driver, By by)
+        {
+            var js = (IJavaScriptExecutor)driver;
+            try
+            {
+                var element = driver.FindElement(by);
+                if (element.Location.Y > 200)
+                {
+                    js.ExecuteScript("window.scrollTo(0, document.body.scrollHeight/2);");
+                }
+                return element;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
         public Playlist GetWebPlaylist(string url)
         {
             string projectFolder = AppDomain.CurrentDomain.BaseDirectory;
             string driverPath = Path.Combine(projectFolder, "Chromedriver");
             IWebDriver driver = new ChromeDriver(driverPath);
-
+            Playlist playlist  = new Playlist();
            
             try
             {
@@ -53,6 +65,8 @@ namespace TestAvaloniaAPP.Data.Repositories
                 wait.Until(driver => ((IJavaScriptExecutor)driver).ExecuteScript("return document.readyState").Equals("complete"));
 
                 wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[1]/div/div[1]/music-link/a")));
+
+
 
                 IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver;
                 var jsResult = jsExecutor.ExecuteScript("return document.documentElement.outerHTML");
@@ -67,18 +81,82 @@ namespace TestAvaloniaAPP.Data.Repositories
                 doc.LoadHtml(pageSource);
 
                 var playlistXPath = doc.DocumentNode.SelectSingleNode("//*[@id=\"atf\"]/music-detail-header");
-                var songsXPath = doc.DocumentNode.SelectNodes("//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row");
+                playlist.Name = playlistXPath?.GetAttributeValue("headline", "") ?? "";
+                playlist.Avatar = playlistXPath?.GetAttributeValue("image-src", "") ?? "";
+                playlist.Description = playlistXPath?.GetAttributeValue("secondary-text", "") ?? "";
+                //  var songs = doc.DocumentNode.SelectNodes("//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row");
 
 
-                // Приклад парсингу заголовку сторінки
+
+                int index = 1;
+
+                while (true)
+                {
+                 
+
+                    jsResult = (string)jsExecutor.ExecuteScript("return document.documentElement.outerHTML");
+
+                 
+
+                    pageSource = jsResult.ToString();
 
 
-                Playlist playlist = new Playlist
+                    var fragmentDoc = new HtmlDocument();
+
+                    fragmentDoc.LoadHtml(pageSource);
+
+
+                    doc.DocumentNode.AppendChild(fragmentDoc.DocumentNode);
+
+
+
+                    // Прокрутка сторінки
+                    jsExecutor.ExecuteScript("window.scrollBy(0, 200);");
+
+
+
+
+                    if (doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{index}]") == null)
+                    {
+                        break;
+                    }
+
+                    index++;
+
+                    // wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{index}]")));
+
+
+
+                    Thread.Sleep(100);
+                  
+                };
+
+                var allsongs = doc.DocumentNode.SelectNodes("//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row");
+
+                var uniqueSongs = new HashSet<HtmlNode>(new NodeComparer());
+                foreach(var song in allsongs)
+                {
+                    if (!uniqueSongs.Contains(song))
+                    {
+                        uniqueSongs.Add(song);
+                       
+                    }
+                }
+
+                playlist.Songs = uniqueSongs.ToList().Select(p => new Song
+                {
+                    ArtistName = p.GetAttributeValue("secondary-text-1", ""),
+                    SongName = p.GetAttributeValue("primary-text", ""),
+                    Duration = "3:33",
+                    AlbumName = p.GetAttributeValue("secondary-text-2", "")
+                });
+
+            /*    Playlist playlist = new Playlist
                 {
                     Name = playlistXPath?.GetAttributeValue("headline","") ?? "",
                     Avatar = playlistXPath?.GetAttributeValue("image-src", "") ?? "",
                     Description = playlistXPath?.GetAttributeValue("secondary-text","")?? "",
-                    Songs = songsXPath.Select(p=> new Song
+                    Songs = allsongs.Select(p=> new Song
                     {
                         ArtistName = p.GetAttributeValue("secondary-text-1",""),
                         SongName = p.GetAttributeValue("primary-text",""),
@@ -88,11 +166,11 @@ namespace TestAvaloniaAPP.Data.Repositories
                    
                    //Songs = GetSongList(doc,pageSource)
                 };
-
-                return playlist !=null ? playlist : new Playlist
-                {
-                    Name = "Wrong url"
-                };
+            */
+         
+            return playlist;
+                
+          
             }
             catch (NoSuchWindowException ex)
             {
