@@ -90,7 +90,7 @@ namespace TestAvaloniaAPP.Data.Repositories
 
                     doc.DocumentNode.AppendChild(fragmentDoc.DocumentNode);
 
-                    jsExecutor.ExecuteScript("window.scrollBy(0, 200);");
+                    jsExecutor.ExecuteScript("window.scrollBy(0, 1000);");
                     if (doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{index}]") == null)
                     {
                         break;
