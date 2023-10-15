@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace TestAvaloniaAPP.Data
 {
-    public class NodeComparer : IEqualityComparer<HtmlNode>
+    public class NodeComparer : IEqualityComparer<Song>
     {
        
-            public bool Equals(HtmlNode x, HtmlNode y)
+            public bool Equals(Song x, Song y)
             {
                 // Порівнюємо два HtmlNode за атрибутами, в цьому випадку за атрибутом "id"
-                return x.Attributes["primary-text"]?.Value == y.Attributes["primary-text"]?.Value;
+                return x.SongName == y.SongName;
             }
 
-            public int GetHashCode(HtmlNode obj)
+            public int GetHashCode(Song obj)
             {
                 // Використовуємо значення атрибута "id" як хеш-код
-                return obj.Attributes["primary-text"]?.Value.GetHashCode() ?? 0;
+                return obj.SongName?.GetHashCode() ?? 0;
             }
         
     }

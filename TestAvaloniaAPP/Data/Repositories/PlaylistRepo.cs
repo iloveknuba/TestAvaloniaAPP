@@ -22,11 +22,9 @@ namespace TestAvaloniaAPP.Data.Repositories
 {
     public class PlaylistRepo : IPlaylist
     {
-        HashSet<HtmlNode> GetSongsFromDoc(HtmlDocument doc)
+        HashSet<Song> GetSongsFromDoc(List<Song> allsongs)
         {
-            var allsongs = doc.DocumentNode.SelectNodes("//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row");
-
-            var uniqueSongs = new HashSet<HtmlNode>(new NodeComparer());
+            var uniqueSongs = new HashSet<Song>(new NodeComparer());
             foreach (var song in allsongs)
             {
                 if (!uniqueSongs.Contains(song))
@@ -45,6 +43,7 @@ namespace TestAvaloniaAPP.Data.Repositories
             string projectFolder = AppDomain.CurrentDomain.BaseDirectory;
             string driverPath = Path.Combine(projectFolder, "Chromedriver");
             IWebDriver driver = new ChromeDriver(driverPath);
+            string playlistType;
 
 
             Playlist playlist  = new Playlist();
@@ -56,7 +55,7 @@ namespace TestAvaloniaAPP.Data.Repositories
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                 wait.Until(driver => ((IJavaScriptExecutor)driver).ExecuteScript("return document.readyState").Equals("complete"));
 
-                wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[1]/div/div[1]/music-link/a")));
+                wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"atf\"]/music-detail-header")));
 
 
 
@@ -73,10 +72,20 @@ namespace TestAvaloniaAPP.Data.Repositories
                 doc.LoadHtml(pageSource);
 
                 var playlistNode = doc.DocumentNode.SelectSingleNode("//*[@id=\"atf\"]/music-detail-header");
-           
-   
-                int index = 1;
 
+
+
+                var srs = "//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[1]";
+                playlistType = doc.DocumentNode.SelectSingleNode(srs) == null ? "text" : "image";
+
+
+                var allSongs = new List<Song>();
+                #region Getting songs by cycle
+
+
+
+                int index = 1;
+                int countGap = 10;
                 while (true)
                 {
                  
@@ -90,35 +99,50 @@ namespace TestAvaloniaAPP.Data.Repositories
 
                     doc.DocumentNode.AppendChild(fragmentDoc.DocumentNode);
 
-                    jsExecutor.ExecuteScript("window.scrollBy(0, 1000);");
-                    if (doc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{index}]") == null)
+
+                    var allsongs = doc.DocumentNode.SelectNodes("//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row");
+
+
+                    jsExecutor.ExecuteScript("window.scrollBy(0, 1100);");
+                    if (fragmentDoc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-image-row[{index}]") == null &&
+                        fragmentDoc.DocumentNode.SelectSingleNode($"//*[@id=\"Web.TemplatesInterface.v1_0.Touch.DetailTemplateInterface.DetailTemplate_1\"]/music-container/div/div/div[2]/div/div/music-text-row[{index}]") == null)
                     {
                         break;
                     }
 
+                   
+                    for (int i=1;i<countGap;i++) { 
+
+                        allSongs.Add(new Song
+                        {
+                            AlbumName = fragmentDoc.DocumentNode.SelectSingleNode($"/html/body/div/div[3]/div/music-app/div/div/div/div/music-container/music-container/div/div/div[2]/div/div/music-{playlistType}-row[{i}]/div/div[3]/music-link")?.GetAttributeValue("title", ""),
+                            ArtistName = fragmentDoc.DocumentNode.SelectSingleNode($"/html/body/div/div[3]/div/music-app/div/div/div/div/music-container/music-container/div/div/div[2]/div/div/music-{playlistType}-row[{i}]/div/div[2]/music-link")?.GetAttributeValue("title", ""),
+                            SongName = fragmentDoc.DocumentNode.SelectSingleNode($"/html/body/div/div[3]/div/music-app/div/div/div/div/music-container/music-container/div/div/div[2]/div/div/music-{playlistType}-row[{i}]/div/div[1]/music-link")?.GetAttributeValue("title", ""),
+                            Duration = fragmentDoc.DocumentNode.SelectSingleNode($"/html/body/div/div[3]/div/music-app/div/div/div/div/music-container/music-container/div/div/div[2]/div/div/music-{playlistType}-row[{i}]/div/div[4]/music-link")?.GetAttributeValue("title", ""),
+                        });
+                       
+                    }
+                    countGap += 10;
                     index++;
                     Thread.Sleep(100);
                   
                 };
 
-                var uniqueSongs = GetSongsFromDoc(doc);
+                #endregion
 
+                var uniqueSongs = GetSongsFromDoc(allSongs);
 
+          
+             
   
          
             return new Playlist()
             {
                 Name = playlistNode?.GetAttributeValue("headline", "") ?? "",
                 Avatar = playlistNode?.GetAttributeValue("image-src", "") ?? "",
-                Description = playlistNode?.GetAttributeValue("secondary-text", "") ?? "",
-                Songs = uniqueSongs.ToList().Select(p => new Song
-                {
-                    ArtistName = p.GetAttributeValue("secondary-text-1", ""),
-                    SongName = p.GetAttributeValue("primary-text", ""),
-                    Duration = "3:33",
-                    AlbumName = p.GetAttributeValue("secondary-text-2", "")
-                })
-
+                Description = playlistNode?.GetAttributeValue("primary-text", "") ?? "",
+                Songs = uniqueSongs.ToList()
+         
             };
                 
           
